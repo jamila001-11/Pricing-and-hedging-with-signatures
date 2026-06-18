@@ -19,11 +19,13 @@ from fourier.heston import (
 from fourier.signature_volatility import (
     bracket,
     build_scale_vector,
+    compute_delta_sig_fourier_asian_rescaled,
     compute_delta_sig_fourier_asian_vectorized,
     compute_delta_sig_fourier_rescaled,
     compute_delta_sig_fourier_vectorized,
     compute_X0_sig_fourier,
     compute_X0_sig_fourier_asian,
+    compute_X0_sig_fourier_asian_rescaled,
     compute_X0_sig_fourier_rescaled,
     denormalize_tensor,
     normalize_tensor,

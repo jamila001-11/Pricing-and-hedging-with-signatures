@@ -470,3 +470,113 @@ def compute_delta_sig_fourier_rescaled(
         delta_all[:, j] = st.norm.cdf(d1) - K / np.pi * delta_all[:, j]
 
     return delta_all
+
+
+def compute_X0_sig_fourier_asian_rescaled(
+    rho,
+    f,
+    T,
+    J,
+    M,
+    words,
+    word_idx,
+    varsigma,
+    f0,
+    epsilon,
+    H,
+    scale,
+    V0=0.0625,
+    K=1,
+    n_laguerre=32,
+    N_steps=10,
+):
+    x, w = np.polynomial.laguerre.laggauss(n_laguerre)
+    i = 1j
+    X0_bs_asian = compute_call_bs_asian(S=1, moy_S=1, K=K, t=0, T=T, V0=V0)
+    integral = 0.0
+
+    for k in range(n_laguerre):
+        uk = x[k] - i / 2
+        psi_all_tilde = solve_riccati_rescaled_all_steps(
+            uk, rho, f, T, J, M, words, word_idx, varsigma, f0, epsilon, H, scale, N_steps=N_steps
+        )
+        phi_sig = np.exp(psi_all_tilde[J][word_idx[()]])
+        phi_bs = bs_asian_cf(uk, tau=T, T=T, V0=V0)
+        integral += w[k] * np.exp(x[k]) * np.real((phi_sig - phi_bs) / (0.25 + x[k] ** 2))
+
+    return X0_bs_asian - K * integral / np.pi
+
+
+def compute_delta_sig_fourier_asian_rescaled(
+    rho,
+    S,
+    K,
+    f,
+    sig_W_tilde,
+    sigma_t_all,
+    T,
+    J,
+    M,
+    words,
+    word_idx,
+    varsigma,
+    f0,
+    epsilon,
+    H,
+    scale,
+    V0=0.0625,
+    N_steps=10,
+    n_laguerre=32,
+):
+    x, w = np.polynomial.laguerre.laggauss(n_laguerre)
+    i = 1j
+    I = len(S)
+    dt = T / J
+    delta_all = np.zeros((I, J))
+
+    taus = T - np.arange(J) * dt
+    t_array = np.arange(J) * dt
+    log_S = np.log(S[:, :J])
+    S_j = S[:, :J]
+    sigma_t = sigma_t_all[:, :J]
+
+    log_cumsum = np.zeros(I)
+    bar_S = np.zeros((I, J))
+    for j in range(J):
+        bar_S[:, j] = np.exp(log_cumsum / T)
+        log_cumsum += np.log(S[:, j]) * dt
+
+    for k in range(n_laguerre):
+        uk = x[k] - i / 2
+        psi_all_tilde = solve_riccati_rescaled_all_steps(
+            uk, rho, f, T, J, M, words, word_idx, varsigma, f0, epsilon, H, scale, N_steps=N_steps
+        )
+
+        psi_rev = psi_all_tilde[1:][::-1]
+        brackets = psi_rev[:, 0] + np.einsum("ijk,jk->ij", sig_W_tilde[:, :J, :], psi_rev[:, 1:])
+
+        phi_sig = np.exp(brackets)
+        phi_bs_all = np.array([bs_asian_cf(uk, tau, T, V0) for tau in taus])
+        asian_exponent = i * uk * (T - t_array) / T * log_S + i * uk * np.log(bar_S)
+        M_t = phi_sig * np.exp(asian_exponent)
+        M_t_bs = phi_bs_all[None, :] * np.exp(asian_exponent)
+
+        proj2_all = np.array(
+            [projection(psi_all_tilde[J - j], 2, words, word_idx, M) / np.sqrt(dt) for j in range(J)]
+        )
+        proj_brackets = proj2_all[:, 0] + np.einsum(
+            "ijk,jk->ij", sig_W_tilde[:, :J, :], proj2_all[:, 1:]
+        )
+
+        zeta = i * uk / S_j * (M_t - M_t_bs) + rho * M_t * proj_brackets / (S_j * sigma_t)
+        integrand = np.real(zeta / (0.25 + x[k] ** 2))
+        delta_all += w[k] * np.exp(x[k]) * integrand
+
+    sigma_eff = np.sqrt(V0 * taus**3 / (3 * T**2))
+    sigma_eff = np.where(taus == 0, 1e-10, sigma_eff)
+    d2 = (np.log(bar_S / K) + taus * log_S / T - 0.5 * V0 * taus**2 / (2 * T)) / sigma_eff
+    d1 = d2 + sigma_eff
+    adjustment = np.exp(taus * log_S / T - 0.5 * V0 * (taus**2 / (2 * T) - taus**3 / (3 * T**2)))
+    delta_bs = st.norm.cdf(d1) * (taus / (T * S_j)) * bar_S * adjustment
+
+    return delta_bs - K / np.pi * delta_all

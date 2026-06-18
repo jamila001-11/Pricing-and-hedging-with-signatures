@@ -21,6 +21,7 @@ ENV/
 
 # Sorties générées
 comparison_results.csv
+results/
 
 # IDE / éditeurs
 .vscode/
