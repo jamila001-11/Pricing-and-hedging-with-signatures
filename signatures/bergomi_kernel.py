@@ -1,4 +1,9 @@
+import numpy as np
 import scipy.special as sp
+
+from signatures.tensor_algebra import shuffle_exp, zeros_tensor
+
+
 def compute_sigma_t(t , varsigma , f0 , epsilon , H , M ,words , word_idx):
     sigma_t = zeros_tensor(M)
     u_t = varsigma**2 *(epsilon**(2*H) - (epsilon+t)**(2*H)) / (8*H)

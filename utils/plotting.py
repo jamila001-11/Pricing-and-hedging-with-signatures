@@ -1,4 +1,8 @@
+import numpy as np
+import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
+
+
 def plot_pnl_distribution(l , title):
     plt.figure(figsize=(6, 4))
     for (pnl_vector , label , color, style) in l:

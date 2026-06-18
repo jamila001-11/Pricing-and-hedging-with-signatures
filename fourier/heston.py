@@ -1,3 +1,9 @@
+import numpy as np
+import scipy.stats as st
+
+from fourier.black_scholes import bs_asian_cf, bs_cf, compute_call_bs_asian, compute_X0_bs
+
+
 def heston_cf_eur(u , tau , V , kappa , theta , eta , rho):
     i=1j
     d=np.sqrt((rho * eta*u*i-kappa)**2 + eta**2*(u*i+u**2))

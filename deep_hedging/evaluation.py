@@ -1,3 +1,6 @@
+import torch
+
+
 def evaluate(model , dataloader , device ):
   model.eval()
   with torch.inference_mode():
@@ -9,14 +12,13 @@ def evaluate(model , dataloader , device ):
       payoff_b = payoff_b.to(device)
       current_batch_size = states_b.size(0)
       features = states_b.size(2)
-      seq_len = states_b.size(1)
-      J = seq_len - 1 if seq_len == 127 else seq_len
+      J = dS_b.size(1)
       PnL=torch.zeros(current_batch_size, device=device)
       #for j in range(J):
       #  alpha_j=model(states_b[:,j,:]).squeeze()
       #  PnL+=alpha_j*dS_b[:,j]
       # (batch, J, 3) → (batch*J, 3)
-      inputs = states_b[:, :-1, :] if states_b.size(1) == 127 else states_b
+      inputs = states_b[:, :J, :]
       states_flat = inputs.reshape(-1, features)
       alpha = model(states_flat).squeeze()          # (batch*J,)
       alpha = alpha.reshape(current_batch_size, J)          # (batch, J)

@@ -1,3 +1,7 @@
+import torch
+from tqdm.auto import tqdm
+
+
 def get_optimizer(model):
     optimizer= torch.optim.AdamW(model.parameters() , lr=1e-2 , weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer , T_max=64*157)
@@ -5,8 +9,7 @@ def get_optimizer(model):
 
 def training_loop(model , dataloader , batch_size , optimizer , scheduler , num_epochs , device):
   train_states , train_dS , train_payoff = next(iter(dataloader))
-  seq_len = train_states.size(1)
-  J = seq_len - 1 if seq_len == 127 else seq_len
+  J = train_dS.size(1)
 
   for epoch in tqdm(range(num_epochs)):
     train_loss=0
@@ -25,7 +28,7 @@ def training_loop(model , dataloader , batch_size , optimizer , scheduler , num_
         #  alpha_j=model(states_b[:,j,:]).squeeze()
         #  PnL+=alpha_j*dS_b[:,j]
         # (batch, J, 3) → (batch*J, 3)
-        inputs = states_b[:, :-1, :] if states_b.size(1) == 127 else states_b
+        inputs = states_b[:, :J, :]
         states_flat = inputs.reshape(-1, features)
         alpha = model(states_flat).squeeze()          # (batch*J,)
         alpha = alpha.reshape(current_batch_size, J)          # (batch, J)
