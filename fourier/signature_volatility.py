@@ -568,7 +568,9 @@ def compute_delta_sig_fourier_asian_rescaled(
             "ijk,jk->ij", sig_W_tilde[:, :J, :], proj2_all[:, 1:]
         )
 
-        zeta = i * uk / S_j * (M_t - M_t_bs) + rho * M_t * proj_brackets / (S_j * sigma_t)
+        #zeta = i * uk / S_j * (M_t - M_t_bs) + rho * M_t * proj_brackets / (S_j * sigma_t)
+        f_val_t = i * uk * (T - t_array)[None, :] / T  # f(t,u) = iu(T-t)/T, shape (1, J)
+        zeta = f_val_t / S_j * (M_t - M_t_bs) + rho * M_t * proj_brackets / (S_j * sigma_t)
         integrand = np.real(zeta / (0.25 + x[k] ** 2))
         delta_all += w[k] * np.exp(x[k]) * integrand
 
