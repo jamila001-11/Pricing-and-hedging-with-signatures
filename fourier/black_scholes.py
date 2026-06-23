@@ -52,3 +52,52 @@ def bs_lookback_delta(S, m, tau, r=1e-5, sigma=0.25, h=1e-4):
     price_up = bs_lookback_call(S + h, m, tau, r, sigma)
     price_dn = bs_lookback_call(S - h, m, tau, r, sigma)
     return (price_up - price_dn) / (2 * h)
+
+
+def compute_bs_lookback_delta_bergomi(S, V0=0.0625, T=1/12, J=126):
+    """
+    Benchmark Black-Scholes EXACT du Call Lookback (floating strike) sous Bergomi.
+
+    Couvre avec le delta analytique exact du lookback (formule floating strike,
+    via bs_lookback_delta), en suivant le minimum courant m_t = min(S_0, ..., S_j),
+    avec une volatilite constante sigma_BS = sqrt(V0) = sqrt(f0).
+
+    Contrairement a compute_naive_bs_lookback_delta_bergomi (qui n'utilise que le
+    delta du call europeen N(d1)), on utilise ici la vraie formule lookback.
+
+    Renvoie les deltas de couverture, shape (I, J).
+    Le prix initial associe est bs_lookback_call(1.0, 1.0, T, sigma=sqrt(V0)).
+    """
+    sigma_bs = np.sqrt(V0)
+    dt = T / J
+    I = S.shape[0]
+
+    deltas = np.zeros((I, J))
+    m_t = np.copy(S[:, 0])                       # minimum courant (m_0 = S_0)
+    for j in range(J):
+        tau = T - j * dt                         # temps restant
+        m_t = np.minimum(m_t, S[:, j])           # min observe jusqu'a t_j
+        deltas[:, j] = bs_lookback_delta(S[:, j], m_t, tau, sigma=sigma_bs)
+    return deltas
+
+
+def compute_naive_bs_lookback_delta_bergomi(S, V0=0.0625, T=1/12, J=126, K=1):
+    """
+    Benchmark naïf : delta Black-Scholes du call européen ATM,
+    avec volatilité constante sigma_BS = sqrt(V0) = sqrt(f0).
+    Identique en structure au benchmark Heston, juste T et les
+    trajectoires Bergomi changent.
+    """
+    sigma_bs = np.sqrt(V0)
+    dt = T / J
+    I = S.shape[0]
+    
+    deltas_naive = np.zeros((I, J))
+    for j in range(J):
+        t_j = j * dt
+        tau_j = T - t_j
+        S_j = S[:, j]
+        d1 = (np.log(S_j/K) + 0.5*sigma_bs**2*tau_j) / (sigma_bs*np.sqrt(tau_j))
+        deltas_naive[:, j] = st.norm.cdf(d1)
+    
+    return deltas_naive

@@ -3,7 +3,9 @@ from fourier.black_scholes import (
     bs_cf,
     bs_lookback_call,
     bs_lookback_delta,
+    compute_bs_lookback_delta_bergomi,
     compute_call_bs_asian,
+    compute_naive_bs_lookback_delta_bergomi,
     compute_X0_bs,
 )
 from fourier.heston import (
