@@ -1,9 +1,30 @@
 import numpy as np
-def simulate_heston(S0 , V0, kappa , theta , eta , rho , T , J , I, seed):
+def simulate_gbm(S0, sigma, T, J, I, seed):
+    # mouvement brownien geometrique (Black-Scholes) sous mesure risque-neutre (r=0)
+    # renvoie S de forme (I, J+1), colonnes = temps t_0..t_J
+    # utilise par le module linear_hedging (signatures comme regresseurs lineaires)
     rng = np.random.default_rng(seed)
+    Z = rng.standard_normal((I, J))
+    # mouvement brownien : B_0 = 0 puis somme cumulee des increments
+    B = np.concatenate((np.zeros((I, 1)), np.cumsum(Z, axis=1)), axis=1)
+    t = np.linspace(0, T, J + 1)
+    dt = T / J
+    return S0 * np.exp(-0.5 * sigma**2 * t + sigma * np.sqrt(dt) * B)
+
+def heston_noise(I, J, seed):
+    # source unique de l'alea de simulate_heston : Z1 pilote la variance, Z2 la
+    # composante independante du prix. L'ordre de tirage est ici et nulle part ailleurs.
+    # La couverture Fourier a besoin de Z1 pour reconstruire W_hat = (t, W) sur les MEMES
+    # trajectoires (cf. models.heston_variance_brownian) : passer par cette fonction
+    # garantit que les deux restent coherents si l'alea change un jour.
+    rng = np.random.default_rng(seed)
+    Z1 = rng.standard_normal((I, J))
+    Z2 = rng.standard_normal((I, J))
+    return Z1, Z2
+
+def simulate_heston(S0 , V0, kappa , theta , eta , rho , T , J , I, seed):
     #on simule deux gaussiennes standards et une autre pour avoir une  correlation rho
-    Z1=rng.standard_normal((I , J))
-    Z2=rng.standard_normal((I , J))
+    Z1, Z2 = heston_noise(I, J, seed)
     Z0= rho * Z1 + np.sqrt(1- rho**2) *Z2
     #on coupe l'horizon du temps T  sur J+1 pas de temps
     time_grid = np.linspace(0, T,J+1)

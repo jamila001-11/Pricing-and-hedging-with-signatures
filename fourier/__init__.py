@@ -8,6 +8,7 @@ from fourier.black_scholes import (
     compute_naive_bs_lookback_delta_bergomi,
     compute_X0_bs,
 )
+from fourier.black_scholes_asian import bs_asian_delta, compute_naive_bs_asian_delta
 from fourier.heston import (
     asian_cf,
     compute_call_asian,
@@ -17,6 +18,16 @@ from fourier.heston import (
     heston_cf_eur,
     riccati_rhs,
     solve_riccati_rk4,
+)
+from fourier.signature_constant_vol import (
+    compute_delta_sig_fourier_asian_constant_rescaled,
+    compute_delta_sig_fourier_constant_rescaled,
+    compute_X0_sig_fourier_asian_constant_rescaled,
+    compute_X0_sig_fourier_constant_rescaled,
+    hedging_pnl,
+    rescale_stream_signature,
+    signed_floor,
+    solve_riccati_rescaled_all_steps_constant,
 )
 from fourier.signature_volatility import (
     bracket,

@@ -10,3 +10,7 @@ def compute_payoff_asian(S, K):
     return payoff_asian
 def compute_payoff_lookback(S):
     return S[:,-1]-np.min(S, axis=1)
+def compute_payoff_polynomial(S, coef):
+    # payoff polynomial en S_T : sum_k coef[k] * S_T^k (papier, Sec 5.1)
+    ST = S[:, -1]
+    return sum(coef[k] * ST**k for k in range(len(coef)))
