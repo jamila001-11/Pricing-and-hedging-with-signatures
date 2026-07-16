@@ -39,6 +39,10 @@ hedging_signatures/
 │   ├── networks.py         # VNN, SNN, RNN
 │   ├── training.py         # get_optimizer, training_loop, training_rnn
 │   └── evaluation.py       # evaluate, evaluate_rnn
+├── linear_hedging/     # Signatures comme régresseurs linéaires (Linear BCS / REG)
+│   ├── lead_lag.py         # transformée de Hoff, build_path_LL, signature_transform
+│   ├── black_scholes.py    # prix/delta/P&L BS en forme close (payoff polynomial)
+│   └── linear_regressors.py # Linear BCS (lstsq) et Linear REG (E[S^LL], shuffle Q/b)
 ├── fourier/            # Pricing et hedging par transformée de Fourier
 │   ├── black_scholes.py        # fonctions caractéristiques BS de référence
 │   ├── heston.py               # CF Heston, X0, delta (européen/asiatique)
@@ -160,6 +164,7 @@ données. L'ordre 01 → 07 est pédagogique.
 | `05_fourier_heston`           | **Comparaison** Heston : superpose VNN/SNN/RNN (chargés depuis `results/`) + benchmark Fourier (eur/asian) ou BS naïf (lookback) |
 | `06_fourier_signature_bergomi`| Signature-Fourier Bergomi : **européenne** (σ rescalée + σ apprise) et **asiatique** (σ apprise) |
 | `07_comparison_results`       | Tableau de comparaison final → `comparison_results.csv` |
+| `08_signature_linear_regressors` | Signatures comme régresseurs linéaires sous **Black-Scholes** (payoff polynomial) : benchmark BS + **Linear BCS** (régression du P&L) + **Linear REG** (signature espérée, forme quadratique shuffle). Reproduit le Tableau 5 du papier |
 
 > **Dépendance NB03 → NB05.** Le notebook 05 ne réentraîne pas les réseaux : il
 > **charge** les P&L sauvegardés par le notebook 03 (mêmes paramètres, même jeu
