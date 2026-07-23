@@ -231,7 +231,7 @@ C'est exactement le vecteur d'entrée du **SNN** (`input_features=120`).
   attendu meilleur que le VNN/RNN.
 - **Équation à retard** : `dΣ = κ(θ−Σ)dt + (η+αΣ+ςZ)dW`, `dZ = (Σ−λZ)dt`. `Z` est
   une moyenne exponentiellement pondérée du passé de `Σ` : c'est elle qui crée la
-  **mémoire**. ⚠️ `Σ` n'y est **pas** contraint positif (min ≈ −0.07) : tout
+  **mémoire**. ! `Σ` n'y est **pas** contraint positif (min ≈ −0.07) : tout
   dénominateur en `Σ_t` exige un plancher **signé** (`fourier.signed_floor`), et
   non `np.maximum`, qui inverserait le signe des trajectoires négatives.
 - Les méthodes de Fourier utilisent une quadrature de **Gauss-Laguerre** et un
